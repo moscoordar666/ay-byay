@@ -9,54 +9,67 @@
 </head>
 <body class="bg-gray-100 font-sans">
 
-    <!-- Header -->
-    <div class="bg-green-700 text-white p-5 rounded-b-3xl shadow-lg">
+    <div class="bg-green-700 text-white p-6 rounded-b-3xl shadow-lg">
         <h1 class="text-2xl font-bold text-center">৳ আয় ব্যয়</h1>
     </div>
 
-    <!-- Dashboard Cards -->
     <div class="grid grid-cols-3 gap-2 px-4 mt-5">
-        <div class="bg-white p-3 rounded-xl shadow text-center">
-            <p class="text-xs text-gray-500">ব্যালান্স</p>
-            <h2 class="text-sm font-bold text-green-600">৳ ২০,০০০</h2>
-        </div>
-        <div class="bg-white p-3 rounded-xl shadow text-center">
-            <p class="text-xs text-gray-500">খরচ</p>
-            <h2 class="text-sm font-bold text-red-600">৳ ৭,৩৫০</h2>
-        </div>
-        <div class="bg-white p-3 rounded-xl shadow text-center">
-            <p class="text-xs text-gray-500">অবশিষ্ট</p>
-            <h2 class="text-sm font-bold text-blue-600">৳ ১২,৬৫০</h2>
-        </div>
+        <div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs text-gray-500">ব্যালান্স</p><h2 class="text-sm font-bold text-green-600">৳ ২০,০০০</h2></div>
+        <div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs text-gray-500">খরচ</p><h2 class="text-sm font-bold text-red-600">৳ ৭,৩৫০</h2></div>
+        <div class="bg-white p-3 rounded-xl shadow text-center"><p class="text-xs text-gray-500">অবশিষ্ট</p><h2 class="text-sm font-bold text-blue-600">৳ ১২,৬৫০</h2></div>
     </div>
 
-    <!-- Expense List Section -->
     <div class="px-4 mt-6">
         <h3 class="font-bold text-gray-700 mb-3">দৈনিক খরচের তালিকা</h3>
         <div id="expenseList" class="bg-white rounded-2xl p-4 shadow-sm min-h-[300px]">
-            <!-- ডাটা এখানে ডাইনামিক আসবে -->
+            <p class="text-gray-400 text-center mt-20">কোনো ডাটা পাওয়া যায়নি</p>
         </div>
     </div>
 
-    <!-- Floating Plus Button -->
-    <button onclick="toggleModal()" class="fixed bottom-6 right-6 bg-green-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl">
+    <button onclick="document.getElementById('modal').classList.remove('hidden')" class="fixed bottom-6 right-6 bg-green-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl">
         <i class="fas fa-plus"></i>
     </button>
 
-    <!-- Modal (Pop-up) -->
-    <div id="expenseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6">
             <h2 class="text-xl font-bold mb-4">নতুন খরচ যোগ করুন</h2>
             <input type="date" id="date" class="w-full border p-2 rounded-lg mb-3">
             <input type="number" id="amount" placeholder="টাকার পরিমাণ" class="w-full border p-2 rounded-lg mb-3">
-            <textarea id="desc" placeholder="বিবরণ লিখুন..." class="w-full border p-2 rounded-lg mb-3"></textarea>
+            <textarea id="desc" placeholder="বিবরণ..." class="w-full border p-2 rounded-lg mb-3"></textarea>
             <div class="flex gap-2">
-                <button onclick="toggleModal()" class="w-full py-2 bg-gray-200 rounded-lg">বাতিল</button>
-                <button onclick="saveExpense()" class="w-full py-2 bg-green-600 text-white rounded-lg">সেভ করুন</button>
+                <button onclick="document.getElementById('modal').classList.add('hidden')" class="w-full py-2 bg-gray-200 rounded-lg">বাতিল</button>
+                <button onclick="saveData()" class="w-full py-2 bg-green-600 text-white rounded-lg">সেভ করুন</button>
             </div>
         </div>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZ2cE6sxr9T0zb5tXmfumJhwghL_XSJes",
+            authDomain: "ay-byay-c2d3f.firebaseapp.com",
+            projectId: "ay-byay-c2d3f",
+            storageBucket: "ay-byay-c2d3f.firebasestorage.app",
+            messagingSenderId: "20199204971",
+            appId: "1:20199204971:web:2279af3038f6946bcd292e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.saveData = async () => {
+            const date = document.getElementById('date').value;
+            const amount = document.getElementById('amount').value;
+            const desc = document.getElementById('desc').value;
+
+            if(!date || !amount) return alert("দয়া করে তারিখ ও পরিমাণ লিখুন");
+
+            await addDoc(collection(db, "expenses"), { date, amount, desc });
+            alert("সেভ হয়েছে!");
+            document.getElementById('modal').classList.add('hidden');
+        };
+    </script>
 </body>
 </html>
