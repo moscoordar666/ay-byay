@@ -6,21 +6,22 @@
     <title>আয় ব্যয় - প্রো অ্যাপ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Hind Siliguri', sans-serif; }
-        .modal { transition: opacity 0.3s ease; }
-    </style>
+    <style>body { font-family: 'Hind Siliguri', sans-serif; }</style>
 </head>
-<body class="bg-gray-100 pb-24">
+<body class="bg-gray-100 pb-20">
 
-    <header class="bg-green-700 text-white p-6 pb-12 rounded-b-[2rem] shadow-xl">
+    <header class="bg-green-700 text-white p-6 pb-12 shadow-xl">
         <h1 class="text-2xl font-bold">আয় ব্যয়</h1>
+        <div class="mt-4 flex gap-2">
+            <input type="number" id="budgetInput" placeholder="মাসিক বাজেট (৳)" class="w-full p-2 rounded-lg text-black text-sm">
+            <button onclick="setBudget()" class="bg-green-800 px-4 py-2 rounded-lg text-sm">সেট</button>
+        </div>
     </header>
 
-    <section class="px-4 -mt-8 grid grid-cols-3 gap-2">
+    <section class="px-4 -mt-6 grid grid-cols-3 gap-2">
         <div class="bg-white p-3 rounded-2xl shadow text-center border-t-4 border-green-500">
-            <p class="text-[10px] text-gray-500">ব্যালেন্স</p>
-            <h2 id="totalBalance" class="text-sm font-bold text-green-700">৳০</h2>
+            <p class="text-[10px] text-gray-500">বাজেট</p>
+            <h2 id="displayBudget" class="text-sm font-bold text-green-700">৳০</h2>
         </div>
         <div class="bg-white p-3 rounded-2xl shadow text-center border-t-4 border-red-500">
             <p class="text-[10px] text-gray-500">খরচ</p>
@@ -34,25 +35,17 @@
 
     <main class="px-4 mt-6">
         <h3 class="font-bold text-gray-700 mb-4">দৈনিক খরচের তালিকা</h3>
-        <div id="expenseList" class="space-y-3">
-            </div>
+        <div id="expenseList" class="space-y-3"></div>
     </main>
 
-    <button onclick="toggleModal(true)" class="fixed bottom-20 right-6 bg-green-600 text-white w-16 h-16 rounded-full shadow-2xl text-3xl">+</button>
+    <button onclick="toggleModal(true)" class="fixed bottom-20 right-6 bg-green-600 text-white w-14 h-14 rounded-full shadow-2xl text-3xl">+</button>
 
-    <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around p-4 shadow-lg">
-        <button class="text-green-700">হোম</button>
-        <button class="text-gray-400">দেনা-পাওনা</button>
-        <button class="text-gray-400">রিপোর্ট</button>
-        <button class="text-gray-400">সেটিংস</button>
-    </nav>
-
-    <div id="expenseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div id="expenseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
-            <h2 class="text-xl font-bold mb-4">নতুন খরচ যোগ করুন</h2>
+            <h2 class="text-lg font-bold mb-4">নতুন খরচ যোগ করুন</h2>
             <input type="date" id="date" class="w-full border p-3 rounded-xl mb-3">
             <input type="number" id="amount" placeholder="টাকার পরিমাণ" class="w-full border p-3 rounded-xl mb-3">
-            <textarea id="desc" placeholder="বিবরণ..." class="w-full border p-3 rounded-xl mb-3"></textarea>
+            <input type="text" id="desc" placeholder="বিবরণ (যেমন: বাজার)" class="w-full border p-3 rounded-xl mb-3">
             <div class="flex gap-2">
                 <button onclick="toggleModal(false)" class="w-full py-3 bg-gray-200 rounded-xl">বাতিল</button>
                 <button onclick="saveData()" class="w-full py-3 bg-green-600 text-white rounded-xl">সেভ করুন</button>
@@ -62,59 +55,55 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
-        // আপনার Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDZ2cE6sxr9T0zb5tXmfumJhwghL_XSJes",
-            authDomain: "ay-byay-c2d3f.firebaseapp.com",
             projectId: "ay-byay-c2d3f",
-            storageBucket: "ay-byay-c2d3f.firebasestorage.app",
-            messagingSenderId: "20199204971",
-            appId: "1:20199204971:web:2279af3038f6946bcd292e"
+            // বাকি কনফিগ এখানে ঠিক রাখুন
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // UI কন্ট্রোল
-        window.toggleModal = (show) => {
-            document.getElementById('expenseModal').classList.toggle('hidden', !show);
+        // বাজেট সেভ ও লোড
+        window.setBudget = async () => {
+            const b = document.getElementById('budgetInput').value;
+            await setDoc(doc(db, "settings", "budget"), { amount: parseFloat(b) });
+            alert("বাজেট আপডেট হয়েছে!");
         };
 
-        // ডাটা সেভ ফাংশন
+        onSnapshot(doc(db, "settings", "budget"), (snap) => {
+            if(snap.exists()) document.getElementById('displayBudget').innerText = `৳${snap.data().amount}`;
+        });
+
+        // UI ও ডাটা লজিক
+        window.toggleModal = (show) => document.getElementById('expenseModal').classList.toggle('hidden', !show);
+
         window.saveData = async () => {
             const date = document.getElementById('date').value;
             const amount = parseFloat(document.getElementById('amount').value);
             const desc = document.getElementById('desc').value;
-
-            if(!date || !amount || !desc) return alert("সব ঘর পূরণ করুন!");
-
-            await addDoc(collection(db, "expenses"), { date, amount, desc, createdAt: serverTimestamp() });
-            alert("সফলভাবে সেভ হয়েছে!");
+            if(!date || !amount || !desc) return alert("সব তথ্য দিন!");
+            await addDoc(collection(db, "expenses"), { date, amount, desc, createdAt: new Date() });
             toggleModal(false);
         };
 
-        // রিয়েল-টাইম ডাটা আপডেট
         onSnapshot(query(collection(db, "expenses"), orderBy("createdAt", "desc")), (snapshot) => {
             const list = document.getElementById('expenseList');
-            list.innerHTML = "";
             let total = 0;
-            snapshot.forEach(doc => {
-                const item = doc.data();
+            list.innerHTML = "";
+            snapshot.forEach(d => {
+                const item = d.data();
                 total += item.amount;
-                list.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl flex justify-between items-center shadow-sm">
-                        <div>
-                            <p class="font-bold">${item.desc}</p>
-                            <p class="text-xs text-gray-400">${item.date}</p>
-                        </div>
-                        <span class="font-bold text-red-500">৳${item.amount}</span>
-                    </div>
-                `;
+                list.innerHTML += `<div class="bg-white p-4 rounded-xl flex justify-between shadow-sm">
+                    <div><p class="font-bold">${item.desc}</p><p class="text-xs text-gray-400">${item.date}</p></div>
+                    <span class="text-red-500 font-bold">৳${item.amount}</span>
+                </div>`;
             });
             document.getElementById('totalExpense').innerText = `৳${total}`;
-            document.getElementById('remainingBalance').innerText = `৳${20000 - total}`;
+            const b = parseFloat(document.getElementById('displayBudget').innerText.replace('৳', '')) || 0;
+            document.getElementById('remainingBalance').innerText = `৳${b - total}`;
         });
     </script>
 </body>
