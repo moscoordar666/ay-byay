@@ -3,70 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>আয় ব্যয় - প্রোডাকশন রেডি</title>
+    <title>আয় ব্যয় - প্রো অ্যাপ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Hind Siliguri', sans-serif; }</style>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; }
+        .modal { transition: opacity 0.3s ease; }
+    </style>
 </head>
-<body class="bg-gray-100 pb-20">
+<body class="bg-gray-100 pb-24">
 
-    <div class="bg-green-700 text-white p-6 rounded-b-3xl shadow-lg">
-        <h1 class="text-2xl font-bold text-center">আয় ব্যয়</h1>
-    </div>
+    <header class="bg-green-700 text-white p-6 pb-12 rounded-b-[2rem] shadow-xl">
+        <h1 class="text-2xl font-bold">আয় ব্যয়</h1>
+    </header>
 
-    <div class="grid grid-cols-3 gap-2 px-4 -mt-8">
-        <div class="bg-white p-4 rounded-2xl shadow-md text-center border-b-4 border-green-500">
-            <p class="text-[10px] text-gray-500">ব্যালান্স</p>
-            <p class="font-bold text-green-700">৳২০,০০০</p>
+    <section class="px-4 -mt-8 grid grid-cols-3 gap-2">
+        <div class="bg-white p-3 rounded-2xl shadow text-center border-t-4 border-green-500">
+            <p class="text-[10px] text-gray-500">ব্যালেন্স</p>
+            <h2 id="totalBalance" class="text-sm font-bold text-green-700">৳০</h2>
         </div>
-        <div class="bg-white p-4 rounded-2xl shadow-md text-center border-b-4 border-red-500">
+        <div class="bg-white p-3 rounded-2xl shadow text-center border-t-4 border-red-500">
             <p class="text-[10px] text-gray-500">খরচ</p>
-            <p class="font-bold text-red-600">৳৭,৩৫০</p>
+            <h2 id="totalExpense" class="text-sm font-bold text-red-600">৳০</h2>
         </div>
-        <div class="bg-white p-4 rounded-2xl shadow-md text-center border-b-4 border-blue-500">
+        <div class="bg-white p-3 rounded-2xl shadow text-center border-t-4 border-blue-500">
             <p class="text-[10px] text-gray-500">অবশিষ্ট</p>
-            <p class="font-bold text-blue-600">৳১২,৬৫০</p>
+            <h2 id="remainingBalance" class="text-sm font-bold text-blue-600">৳০</h2>
         </div>
-    </div>
+    </section>
 
-    <div class="px-4 mt-6">
-        <h2 class="font-bold mb-3 text-gray-700">দৈনিক খরচের তালিকা</h2>
+    <main class="px-4 mt-6">
+        <h3 class="font-bold text-gray-700 mb-4">দৈনিক খরচের তালিকা</h3>
         <div id="expenseList" class="space-y-3">
             </div>
-    </div>
+    </main>
 
-    <button id="addBtn" class="fixed bottom-20 right-6 bg-green-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 transition">
-        +
-    </button>
+    <button onclick="toggleModal(true)" class="fixed bottom-20 right-6 bg-green-600 text-white w-16 h-16 rounded-full shadow-2xl text-3xl">+</button>
 
-    <div class="fixed bottom-0 w-full bg-white p-4 flex justify-between px-8 border-t shadow-inner">
-        <button class="text-green-700 font-bold">হোম</button>
+    <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around p-4 shadow-lg">
+        <button class="text-green-700">হোম</button>
         <button class="text-gray-400">দেনা-পাওনা</button>
         <button class="text-gray-400">রিপোর্ট</button>
         <button class="text-gray-400">সেটিংস</button>
+    </nav>
+
+    <div id="expenseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+            <h2 class="text-xl font-bold mb-4">নতুন খরচ যোগ করুন</h2>
+            <input type="date" id="date" class="w-full border p-3 rounded-xl mb-3">
+            <input type="number" id="amount" placeholder="টাকার পরিমাণ" class="w-full border p-3 rounded-xl mb-3">
+            <textarea id="desc" placeholder="বিবরণ..." class="w-full border p-3 rounded-xl mb-3"></textarea>
+            <div class="flex gap-2">
+                <button onclick="toggleModal(false)" class="w-full py-3 bg-gray-200 rounded-xl">বাতিল</button>
+                <button onclick="saveData()" class="w-full py-3 bg-green-600 text-white rounded-xl">সেভ করুন</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
-        import { db } from './firebase-config.js';
-        import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
-        // ডাটা রেন্ডার করার ফাংশন
-        const q = query(collection(db, "expenses"), orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
+        // আপনার Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZ2cE6sxr9T0zb5tXmfumJhwghL_XSJes",
+            authDomain: "ay-byay-c2d3f.firebaseapp.com",
+            projectId: "ay-byay-c2d3f",
+            storageBucket: "ay-byay-c2d3f.firebasestorage.app",
+            messagingSenderId: "20199204971",
+            appId: "1:20199204971:web:2279af3038f6946bcd292e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // UI কন্ট্রোল
+        window.toggleModal = (show) => {
+            document.getElementById('expenseModal').classList.toggle('hidden', !show);
+        };
+
+        // ডাটা সেভ ফাংশন
+        window.saveData = async () => {
+            const date = document.getElementById('date').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const desc = document.getElementById('desc').value;
+
+            if(!date || !amount || !desc) return alert("সব ঘর পূরণ করুন!");
+
+            await addDoc(collection(db, "expenses"), { date, amount, desc, createdAt: serverTimestamp() });
+            alert("সফলভাবে সেভ হয়েছে!");
+            toggleModal(false);
+        };
+
+        // রিয়েল-টাইম ডাটা আপডেট
+        onSnapshot(query(collection(db, "expenses"), orderBy("createdAt", "desc")), (snapshot) => {
             const list = document.getElementById('expenseList');
             list.innerHTML = "";
+            let total = 0;
             snapshot.forEach(doc => {
                 const item = doc.data();
+                total += item.amount;
                 list.innerHTML += `
                     <div class="bg-white p-4 rounded-2xl flex justify-between items-center shadow-sm">
                         <div>
-                            <p class="font-bold text-sm">${item.description}</p>
-                            <p class="text-[10px] text-gray-400">${item.date}</p>
+                            <p class="font-bold">${item.desc}</p>
+                            <p class="text-xs text-gray-400">${item.date}</p>
                         </div>
                         <span class="font-bold text-red-500">৳${item.amount}</span>
                     </div>
                 `;
             });
+            document.getElementById('totalExpense').innerText = `৳${total}`;
+            document.getElementById('remainingBalance').innerText = `৳${20000 - total}`;
         });
     </script>
 </body>
