@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>আয় ব্যয় অ্যাপ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>আয় ব্যয়</h1>
+        <div class="dashboard">
+            <div class="card">টোটাল ব্যালান্স: <span id="balance">৳ ২০,০০০</span></div>
+            <div class="card">টোটাল খরচ: <span id="totalExpense">৳ ৭,৩৫০</span></div>
+            <div class="card">অবশিষ্ট: <span id="remaining">৳ ১২,৬৫০</span></div>
+        </div>
+        
+        <div id="expenseList">
+            <!-- দৈনিক খরচের তালিকা এখানে আসবে -->
+        </div>
+
+        <button class="add-btn" onclick="openModal()">+</button>
+    </div>
+
+    <!-- পপ-আপ -->
+    <div id="myModal" class="modal">
+        <input type="date" id="date">
+        <input type="number" id="amount" placeholder="টাকা">
+        <textarea id="desc" placeholder="বিবরণ"></textarea>
+        <button onclick="saveData()">সেভ করুন</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
