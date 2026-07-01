@@ -2,33 +2,61 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>আয় ব্যয় অ্যাপ</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আয় ব্যয় - পার্সোনাল ট্র্যাকার</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <div class="container">
-        <h1>আয় ব্যয়</h1>
-        <div class="dashboard">
-            <div class="card">টোটাল ব্যালান্স: <span id="balance">৳ ২০,০০০</span></div>
-            <div class="card">টোটাল খরচ: <span id="totalExpense">৳ ৭,৩৫০</span></div>
-            <div class="card">অবশিষ্ট: <span id="remaining">৳ ১২,৬৫০</span></div>
-        </div>
-        
-        <div id="expenseList">
-            <!-- দৈনিক খরচের তালিকা এখানে আসবে -->
-        </div>
+<body class="bg-gray-100 font-sans">
 
-        <button class="add-btn" onclick="openModal()">+</button>
+    <!-- Header -->
+    <div class="bg-green-700 text-white p-5 rounded-b-3xl shadow-lg">
+        <h1 class="text-2xl font-bold text-center">৳ আয় ব্যয়</h1>
     </div>
 
-    <!-- পপ-আপ -->
-    <div id="myModal" class="modal">
-        <input type="date" id="date">
-        <input type="number" id="amount" placeholder="টাকা">
-        <textarea id="desc" placeholder="বিবরণ"></textarea>
-        <button onclick="saveData()">সেভ করুন</button>
+    <!-- Dashboard Cards -->
+    <div class="grid grid-cols-3 gap-2 px-4 mt-5">
+        <div class="bg-white p-3 rounded-xl shadow text-center">
+            <p class="text-xs text-gray-500">ব্যালান্স</p>
+            <h2 class="text-sm font-bold text-green-600">৳ ২০,০০০</h2>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow text-center">
+            <p class="text-xs text-gray-500">খরচ</p>
+            <h2 class="text-sm font-bold text-red-600">৳ ৭,৩৫০</h2>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow text-center">
+            <p class="text-xs text-gray-500">অবশিষ্ট</p>
+            <h2 class="text-sm font-bold text-blue-600">৳ ১২,৬৫০</h2>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Expense List Section -->
+    <div class="px-4 mt-6">
+        <h3 class="font-bold text-gray-700 mb-3">দৈনিক খরচের তালিকা</h3>
+        <div id="expenseList" class="bg-white rounded-2xl p-4 shadow-sm min-h-[300px]">
+            <!-- ডাটা এখানে ডাইনামিক আসবে -->
+        </div>
+    </div>
+
+    <!-- Floating Plus Button -->
+    <button onclick="toggleModal()" class="fixed bottom-6 right-6 bg-green-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Modal (Pop-up) -->
+    <div id="expenseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6">
+            <h2 class="text-xl font-bold mb-4">নতুন খরচ যোগ করুন</h2>
+            <input type="date" id="date" class="w-full border p-2 rounded-lg mb-3">
+            <input type="number" id="amount" placeholder="টাকার পরিমাণ" class="w-full border p-2 rounded-lg mb-3">
+            <textarea id="desc" placeholder="বিবরণ লিখুন..." class="w-full border p-2 rounded-lg mb-3"></textarea>
+            <div class="flex gap-2">
+                <button onclick="toggleModal()" class="w-full py-2 bg-gray-200 rounded-lg">বাতিল</button>
+                <button onclick="saveExpense()" class="w-full py-2 bg-green-600 text-white rounded-lg">সেভ করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
 </body>
 </html>
